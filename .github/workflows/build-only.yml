@@ -1,4 +1,4 @@
-name: Simple Build Fixed
+name: Build Only
 
 on:
   workflow_dispatch:
@@ -34,24 +34,9 @@ jobs:
         mkdir build\windows
         copy dist\forward-api-gateway.exe build\windows\
         copy config.yaml build\windows\
-        
-        # Create start.bat
-        (
-          echo @echo off
-          echo forward-api-gateway.exe
-        ) > build\windows\start.bat
-        
-        # Create install-service.bat
-        (
-          echo @echo off
-          echo sc create "ForwardAPI" binPath="%%~dp0forward-api-gateway.exe" start=auto
-          echo sc description "ForwardAPI" "Forward API Gateway Service"
-          echo echo Service installed. To start: sc start ForwardAPI
-          echo pause
-        ) > build\windows\install-service.bat
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: windows-executable-fixed
+        name: windows-executable-only
         path: build/windows/ 
