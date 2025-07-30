@@ -1,6 +1,6 @@
 @echo off
 echo ========================================
-echo Forward API Gateway - Service Installer
+echo Forward API Gateway - Service Uninstaller
 echo ========================================
 echo.
 echo IMPORTANT: This script requires Administrator privileges!
@@ -14,25 +14,25 @@ echo Press any key to continue...
 pause >nul
 
 echo.
-echo Installing Forward API Gateway as Windows Service...
-sc create "ForwardAPI" binPath="%~dp0forward-api-gateway.exe" start=auto
+echo Stopping Forward API Gateway Service...
+sc stop ForwardAPI
+if %errorlevel% neq 0 (
+    echo Service is not running or does not exist.
+)
+
+echo.
+echo Removing Forward API Gateway Service...
+sc delete ForwardAPI
 if %errorlevel% neq 0 (
     echo.
-    echo ERROR: Failed to create service!
+    echo ERROR: Failed to remove service!
     echo Make sure you are running as Administrator.
     echo.
     pause
     exit /b 1
 )
 
-sc description "ForwardAPI" "Forward API Gateway Service"
 echo.
-echo Service installed successfully!
-echo.
-echo To manage the service:
-echo - Start:   sc start ForwardAPI
-echo - Stop:    sc stop ForwardAPI
-echo - Status:  sc query ForwardAPI
-echo - Remove:  sc delete ForwardAPI
+echo Service removed successfully!
 echo.
 pause 
