@@ -1,11 +1,9 @@
-name: Build Windows Executable
+name: Create Release
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+    tags:
+      - 'v*'
 
 jobs:
   build-windows:
@@ -25,25 +23,9 @@ jobs:
         pip install fastapi uvicorn loguru pyyaml httpx pydantic
         pip install pyinstaller
     
-    - name: Debug - List files
-      run: |
-        echo "Current directory:"
-        pwd
-        echo "Files in current directory:"
-        dir
-        echo "Files in app directory:"
-        dir app
-    
     - name: Build Windows executable
       run: |
         pyinstaller --onefile --console --name forward-api-gateway app/main.py --add-data "config.yaml;." --add-data "app;app" --hidden-import uvicorn.logging --hidden-import uvicorn.loops --hidden-import uvicorn.loops.auto --hidden-import uvicorn.protocols --hidden-import uvicorn.protocols.http --hidden-import uvicorn.protocols.http.auto --hidden-import uvicorn.protocols.websockets --hidden-import uvicorn.protocols.websockets.auto --hidden-import uvicorn.lifespan --hidden-import uvicorn.lifespan.on --hidden-import loguru --hidden-import yaml --hidden-import httpx --hidden-import fastapi --hidden-import starlette --hidden-import pydantic
-    
-    - name: Debug - Check build output
-      run: |
-        echo "Files in dist directory:"
-        dir dist
-        echo "Files in build directory:"
-        dir build
     
     - name: Create Windows package
       run: |
@@ -64,14 +46,11 @@ jobs:
         echo echo Service installed. To start: sc start ForwardAPI >> build\windows\install-service.bat
         echo pause >> build\windows\install-service.bat
     
-    - name: Debug - Check final package
-      run: |
-        echo "Files in build/windows directory:"
-        dir build\windows
-    
-    - name: Upload Windows package
-      uses: actions/upload-artifact@v4
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
       with:
-        name: windows-executable
-        path: build/windows/
-        retention-days: 30 
+        files: build/windows/*
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
