@@ -67,7 +67,6 @@ async def get_routes():
     routes_info = {}
     for route_name, route_config in config.routes.items():
         routes_info[route_name] = {
-            "path": route_config.path,
             "target_url": route_config.target_url,
             "timeout": route_config.timeout
         }
