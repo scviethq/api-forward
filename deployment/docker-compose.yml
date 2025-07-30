@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  forward-api:
+    image: scviethq/forward-api:latest
+    container_name: forward-api-gateway
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - ./logs:/app/logs
+    environment:
+      - PYTHONPATH=/app
+      - CONFIG_PATH=/app/config.yaml
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - forward-network
+
+networks:
+  forward-network:
+    driver: bridge 

@@ -1,0 +1,43 @@
+# Multi-stage build cho Windows executable
+FROM python:3.11-windowsservercore as builder
+
+WORKDIR /app
+
+# Copy source code
+COPY requirements.txt .
+COPY app/ ./app/
+COPY config.yaml .
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install pyinstaller
+
+# Build executable
+RUN pyinstaller --onefile --console --name forward-api-gateway app/main.py --add-data "config.yaml;." --add-data "app;app"
+
+# Runtime stage
+FROM mcr.microsoft.com/windows/servercore:ltsc2019
+
+WORKDIR /app
+
+# Copy executable và config
+COPY --from=builder /app/dist/forward-api-gateway.exe .
+COPY config.yaml .
+
+# Create start script
+RUN echo @echo off > start.bat && \
+    echo echo Starting Forward API Gateway... >> start.bat && \
+    echo forward-api-gateway.exe >> start.bat && \
+    echo pause >> start.bat
+
+# Create service installer
+RUN echo @echo off > install-service.bat && \
+    echo echo Installing Forward API Gateway as Windows Service... >> install-service.bat && \
+    echo sc create "ForwardAPI" binPath="%%~dp0forward-api-gateway.exe" start=auto >> install-service.bat && \
+    echo sc description "ForwardAPI" "Forward API Gateway Service" >> install-service.bat && \
+    echo echo Service installed. To start: sc start ForwardAPI >> install-service.bat && \
+    echo pause >> install-service.bat
+
+EXPOSE 8000
+
+CMD ["forward-api-gateway.exe"] 
