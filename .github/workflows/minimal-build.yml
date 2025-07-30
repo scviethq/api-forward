@@ -1,0 +1,80 @@
+name: Minimal Windows Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install fastapi uvicorn loguru pyyaml httpx pydantic
+    
+    - name: Debug step 1 - Check Python
+      run: |
+        python --version
+        python -c "import sys; print('Python path:', sys.executable)"
+    
+    - name: Debug step 2 - Check files
+      run: |
+        dir
+        dir app
+        type config.yaml
+    
+    - name: Debug step 3 - Test imports
+      run: |
+        python -c "import fastapi; print('FastAPI OK')"
+        python -c "import uvicorn; print('Uvicorn OK')"
+        python -c "import loguru; print('Loguru OK')"
+        python -c "import yaml; print('YAML OK')"
+        python -c "import httpx; print('HTTPX OK')"
+        python -c "import pydantic; print('Pydantic OK')"
+    
+    - name: Debug step 4 - Test app imports
+      run: |
+        python -c "import app; print('App package OK')"
+        python -c "import app.config; print('Config module OK')"
+        python -c "import app.logger; print('Logger module OK')"
+        python -c "import app.middleware; print('Middleware module OK')"
+        python -c "import app.forwarder; print('Forwarder module OK')"
+    
+    - name: Debug step 5 - Test main import
+      run: |
+        python -c "import app.main; print('Main module OK')"
+    
+    - name: Debug step 6 - Test config loading
+      run: |
+        python -c "from app.config import config; print('Config loaded OK, routes:', len(config.routes))"
+    
+    - name: Install PyInstaller
+      run: |
+        pip install pyinstaller
+    
+    - name: Debug step 7 - Test PyInstaller
+      run: |
+        pyinstaller --version
+    
+    - name: Build minimal executable
+      run: |
+        pyinstaller --onefile --console app/main.py --name forward-api-gateway --log-level DEBUG
+    
+    - name: Check build result
+      run: |
+        dir dist
+        if exist dist\forward-api-gateway.exe (
+          echo "Build successful!"
+          dir dist\forward-api-gateway.exe
+        ) else (
+          echo "Build failed!"
+          exit 1
+        ) 
