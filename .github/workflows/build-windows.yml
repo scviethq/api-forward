@@ -22,16 +22,32 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install fastapi uvicorn loguru pyyaml httpx pydantic
         pip install pyinstaller
+    
+    - name: Debug - List files
+      run: |
+        echo "Current directory:"
+        pwd
+        echo "Files in current directory:"
+        dir
+        echo "Files in app directory:"
+        dir app
     
     - name: Build Windows executable
       run: |
-        pyinstaller --onefile --console --name forward-api-gateway app/main.py --add-data "config.yaml;." --add-data "app;app"
+        pyinstaller --onefile --console --name forward-api-gateway app/main.py --add-data "config.yaml;." --add-data "app;app" --hidden-import uvicorn.logging --hidden-import uvicorn.loops --hidden-import uvicorn.loops.auto --hidden-import uvicorn.protocols --hidden-import uvicorn.protocols.http --hidden-import uvicorn.protocols.http.auto --hidden-import uvicorn.protocols.websockets --hidden-import uvicorn.protocols.websockets.auto --hidden-import uvicorn.lifespan --hidden-import uvicorn.lifespan.on --hidden-import loguru --hidden-import yaml --hidden-import httpx --hidden-import fastapi --hidden-import starlette --hidden-import pydantic
+    
+    - name: Debug - Check build output
+      run: |
+        echo "Files in dist directory:"
+        dir dist
+        echo "Files in build directory:"
+        dir build
     
     - name: Create Windows package
       run: |
-        mkdir -p build/windows
+        mkdir build\windows
         copy dist\forward-api-gateway.exe build\windows\
         copy config.yaml build\windows\
         copy README.md build\windows\
@@ -48,8 +64,14 @@ jobs:
         echo echo Service installed. To start: sc start ForwardAPI >> build\windows\install-service.bat
         echo pause >> build\windows\install-service.bat
     
+    - name: Debug - Check final package
+      run: |
+        echo "Files in build/windows directory:"
+        dir build\windows
+    
     - name: Upload Windows package
       uses: actions/upload-artifact@v3
       with:
         name: windows-executable
-        path: build/windows/ 
+        path: build/windows/
+        retention-days: 30 
