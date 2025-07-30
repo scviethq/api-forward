@@ -106,5 +106,5 @@ if __name__ == "__main__":
         host=config.server.host,
         port=config.server.port,
         log_level=config.server.log_level.lower(),
-        reload=True
+        reload=False  # Tắt reload mode cho production
     ) 
