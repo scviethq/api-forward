@@ -1,4 +1,4 @@
-name: Simple Build Fixed
+name: Build Clean
 
 on:
   workflow_dispatch:
@@ -34,9 +34,11 @@ jobs:
         mkdir build\windows
         copy dist\forward-api-gateway.exe build\windows\
         copy config.yaml build\windows\
+        copy start-windows.bat build\windows\
+        copy install-service-windows.bat build\windows\
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: windows-executable-fixed
+        name: windows-executable-clean
         path: build/windows/ 
