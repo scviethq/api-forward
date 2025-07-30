@@ -1,0 +1,65 @@
+name: Debug Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install fastapi uvicorn loguru pyyaml httpx pydantic
+    
+    - name: Debug - List files
+      run: |
+        echo "Current directory:"
+        pwd
+        echo "Files in current directory:"
+        dir
+        echo "Files in app directory:"
+        dir app
+    
+    - name: Debug - Test Python import
+      run: |
+        echo "Testing Python import..."
+        python -c "print('Python version:', __import__('sys').version)"
+        python -c "import fastapi; print('FastAPI imported')"
+        python -c "import uvicorn; print('Uvicorn imported')"
+        python -c "import loguru; print('Loguru imported')"
+        python -c "import yaml; print('PyYAML imported')"
+        python -c "import httpx; print('HTTPX imported')"
+        python -c "import pydantic; print('Pydantic imported')"
+    
+    - name: Debug - Test app import
+      run: |
+        echo "Testing app import..."
+        python -c "import app; print('App package imported')"
+        python -c "import app.config; print('App config imported')"
+        python -c "import app.logger; print('App logger imported')"
+        python -c "import app.middleware; print('App middleware imported')"
+        python -c "import app.forwarder; print('App forwarder imported')"
+    
+    - name: Debug - Test main import
+      run: |
+        echo "Testing main import..."
+        python -c "import app.main; print('Main imported successfully')"
+    
+    - name: Debug - Test config loading
+      run: |
+        echo "Testing config loading..."
+        python -c "from app.config import config; print('Config loaded:', len(config.routes))"
+    
+    - name: Debug - Test main execution
+      run: |
+        echo "Testing main execution (timeout 10s)..."
+        timeout 10 python app/main.py || echo "Main execution test completed" 
