@@ -1,10 +1,10 @@
-name: Minimal Windows Build
+name: Test Only
 
 on:
   workflow_dispatch:
 
 jobs:
-  build:
+  test:
     runs-on: windows-latest
     
     steps:
@@ -20,18 +20,21 @@ jobs:
         python -m pip install --upgrade pip
         pip install fastapi uvicorn loguru pyyaml httpx pydantic
     
-    - name: Debug step 1 - Check Python
+    - name: Test 1 - Python version
       run: |
         python --version
-        python -c "import sys; print('Python path:', sys.executable)"
+        python -c "import sys; print('Python executable:', sys.executable)"
     
-    - name: Debug step 2 - Check files
+    - name: Test 2 - List files
       run: |
+        echo "Current directory:"
+        pwd
+        echo "Files:"
         dir
+        echo "App directory:"
         dir app
-        type config.yaml
     
-    - name: Debug step 3 - Test imports
+    - name: Test 3 - Basic imports
       run: |
         python -c "import fastapi; print('FastAPI OK')"
         python -c "import uvicorn; print('Uvicorn OK')"
@@ -40,7 +43,7 @@ jobs:
         python -c "import httpx; print('HTTPX OK')"
         python -c "import pydantic; print('Pydantic OK')"
     
-    - name: Debug step 4 - Test app imports
+    - name: Test 4 - App imports
       run: |
         python -c "import app; print('App package OK')"
         python -c "import app.config; print('Config module OK')"
@@ -48,42 +51,19 @@ jobs:
         python -c "import app.middleware; print('Middleware module OK')"
         python -c "import app.forwarder; print('Forwarder module OK')"
     
-    - name: Debug step 5 - Test main import
+    - name: Test 5 - Main import
       run: |
         python -c "import app.main; print('Main module OK')"
     
-    - name: Debug step 6 - Test config loading
+    - name: Test 6 - Config loading
       run: |
         python -c "from app.config import config; print('Config loaded OK, routes:', len(config.routes))"
     
-    - name: Test main execution
+    - name: Test 7 - Run main (timeout)
       run: |
         echo "Testing main execution..."
         python app/main.py &
         $pid = $LASTEXITCODE
         Start-Sleep -Seconds 5
         Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
-        echo "Main execution test completed"
-    
-    - name: Install PyInstaller
-      run: |
-        pip install pyinstaller
-    
-    - name: Debug step 7 - Test PyInstaller
-      run: |
-        pyinstaller --version
-    
-    - name: Build minimal executable
-      run: |
-        pyinstaller --onefile --console app/main.py --name forward-api-gateway --log-level DEBUG
-    
-    - name: Check build result
-      run: |
-        dir dist
-        if exist dist\forward-api-gateway.exe (
-          echo "Build successful!"
-          dir dist\forward-api-gateway.exe
-        ) else (
-          echo "Build failed!"
-          exit 1
-        ) 
+        echo "Main execution test completed" 

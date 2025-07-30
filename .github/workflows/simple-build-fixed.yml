@@ -1,0 +1,51 @@
+name: Simple Build Fixed
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install fastapi uvicorn loguru pyyaml httpx pydantic pyinstaller
+    
+    - name: Test imports
+      run: |
+        python -c "import app.main; print('Import OK')"
+        python -c "from app.config import config; print('Config OK:', len(config.routes))"
+    
+    - name: Build executable
+      run: |
+        pyinstaller --onefile --console app/main.py --name forward-api-gateway
+    
+    - name: Create package
+      run: |
+        mkdir build\windows
+        copy dist\forward-api-gateway.exe build\windows\
+        copy config.yaml build\windows\
+        
+        echo @echo off > build\windows\start.bat
+        echo forward-api-gateway.exe >> build\windows\start.bat
+        
+        echo @echo off > build\windows\install-service.bat
+        echo sc create "ForwardAPI" binPath="%%~dp0forward-api-gateway.exe" start=auto >> build\windows\install-service.bat
+        echo sc description "ForwardAPI" "Forward API Gateway Service" >> build\windows\install-service.bat
+        echo echo Service installed. To start: sc start ForwardAPI >> build\windows\install-service.bat
+        echo pause >> build\windows\install-service.bat
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-executable-fixed
+        path: build/windows/ 
