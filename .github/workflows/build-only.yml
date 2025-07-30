@@ -27,7 +27,7 @@ jobs:
     
     - name: Build executable
       run: |
-        pyinstaller --onefile --console app/main.py --name forward-api-gateway
+        pyinstaller --onefile --console app/main.py --name forward-api-gateway --add-data "app;app" --add-data "config.yaml;." --hidden-import app.config --hidden-import app.logger --hidden-import app.middleware --hidden-import app.forwarder
     
     - name: Create package
       run: |
